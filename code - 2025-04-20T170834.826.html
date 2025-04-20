@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>রামানুজনের জাদুকরী বিশ্ব | Ramanujan's Magical World</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        /* --- === CSS Variables === --- */
+        :root {
+            /* Base Palette (Consistent across themes, controlled by body class) */
+            --bg-gradient: linear-gradient(160deg, #141e30, #243b55, #141e30); /* Default Dark */
+            --text-primary: #e0e6f0;
+            --text-secondary: #a8b2c1;
+            --container-bg: rgba(36, 59, 85, 0.85);
+            --container-border: rgba(79, 172, 254, 0.25);
+            --input-bg: rgba(20, 30, 48, 0.85);
+            --input-border: rgba(79, 172, 254, 0.4);
+            --results-bg: rgba(20, 30, 48, 0.7);
+            --cell-bg: rgba(255, 255, 255, 0.07);
+            --cell-border: rgba(255, 255, 255, 0.18);
+            --cell-hover-bg: rgba(0, 242, 254, 0.15);
+            --footer-text: rgba(168, 178, 193, 0.8);
+            --menu-bg: #243b55;
+            --menu-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            --menu-border: #3a506b;
+            --history-item-bg: #2c4a6b;
+            --history-item-hover-bg: #3a5f86;
+            --icon-color: #a8b2c1;
+
+            /* Common Accents */
+            --accent-primary: #00f2fe; /* Cyan accent */
+            --accent-secondary: #4facfe; /* Light blue accent */
+            --accent-gradient: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
+            --success-color: #2ecc71; /* Green for button/sum */
+            --success-gradient: linear-gradient(45deg, #28a745, #2ecc71);
+            --error-color: #e74c3c; /* Red for errors */
+            --warning-color: #f39c12; /* Orange for warnings */
+            --icon-hover-color: var(--accent-primary);
+
+            /* Component Styles (Common) */
+            --container-shadow: 0 15px 45px rgba(0, 0, 0, 0.3);
+            --input-focus-shadow: 0 0 18px rgba(0, 242, 254, 0.5);
+            --button-text: #ffffff;
+            --button-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+            --button-hover-shadow: 0 8px 20px rgba(46, 204, 113, 0.4);
+            --cell-hover-scale: 1.12; /* Slightly larger pop */
+            --cell-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+            --cell-hover-shadow: 0 10px 22px rgba(0, 0, 0, 0.4);
+
+            /* --- === DISTINCT HIGHLIGHT COLORS === --- */
+            /* Using HSL for easier brightness/saturation adjustments if needed */
+            --highlight-row-bg: hsla(16, 100%, 66%, 0.8); /* Tomato */
+            --highlight-col-bg: hsla(195, 100%, 50%, 0.8); /* Deep Sky Blue */
+            --highlight-diag-bg: hsla(120, 61%, 50%, 0.8); /* Lime Green */
+            --highlight-corners-bg: hsla(39, 100%, 50%, 0.8); /* Orange */
+            --highlight-center-bg: hsla(291, 64%, 58%, 0.8); /* Medium Orchid */
+            --highlight-subsquare-bg: hsla(54, 77%, 75%, 0.85); /* Khaki (adjusted lightness) */
+            --highlight-midrows-bg: hsla(340, 82%, 52%, 0.8); /* Crimson-like */
+            --highlight-midcols-bg: hsla(240, 100%, 70%, 0.8); /* Royal Blue-like */
+
+            /* Text colors for corresponding highlights */
+            --highlight-text-row: #000000;
+            --highlight-text-col: #000000;
+            --highlight-text-diag: #000000;
+            --highlight-text-corners: #000000;
+            --highlight-text-center: #ffffff;
+            --highlight-text-subsquare: #000000;
+             --highlight-text-midrows: #ffffff;
+            --highlight-text-midcols: #ffffff;
+
+
+            /* Fonts & Transitions */
+            --font-primary: 'Poppins', 'Hind Siliguri', sans-serif;
+            --font-bengali: 'Hind Siliguri', sans-serif;
+            --transition-speed-fast: 0.2s;
+            --transition-speed-med: 0.35s;
+            --transition-speed-slow: 0.55s;
+            --animation-duration: 1.3s;
+            --cell-anim-duration: 0.6s;
+        }
+
+        /* --- === Light Mode Overrides === --- */
+        body.light-mode {
+            --bg-gradient: linear-gradient(160deg, #eef2f3, #d7dde8, #eef2f3);
+            --text-primary: #2c3e50;
+            --text-secondary: #566573;
+            --container-bg: rgba(255, 255, 255, 0.85);
+            --container-border: rgba(44, 62, 80, 0.15);
+            --input-bg: rgba(255, 255, 255, 0.9);
+            --input-border: rgba(44, 62, 80, 0.3);
+            --results-bg: rgba(255, 255, 255, 0.7);
+            --cell-bg: rgba(44, 62, 80, 0.07);
+            --cell-border: rgba(44, 62, 80, 0.15);
+            --cell-hover-bg: rgba(79, 172, 254, 0.1); /* Lighter blue hover */
+            --footer-text: #566573;
+            --menu-bg: #ffffff;
+            --menu-shadow: 0 8px 30px rgba(44, 62, 80, 0.15);
+            --menu-border: #e0e0e0;
+            --history-item-bg: #f8f9fa;
+            --history-item-hover-bg: #e9ecef;
+            --icon-color: #566573;
+            --icon-hover-color: var(--text-primary);
+            --cell-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+            --cell-hover-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+        }
+
+        /* --- === Base & Typography === --- */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; font-size: 16px; }
+        body {
+            font-family: var(--font-primary);
+            background: var(--bg-gradient);
+            color: var(--text-primary);
+            transition: background var(--transition-speed-med) ease, color var(--transition-speed-med) ease;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; padding: 35px 15px; overflow-x: hidden;
+        }
+        h1, h2, h3 { font-weight: 600; margin-bottom: 0.7em; }
+        h1 {
+            font-size: clamp(1.9rem, 6vw, 2.8rem); font-weight: 700;
+            background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent; text-shadow: 0 0 12px rgba(0, 242, 254, 0.25);
+            margin-bottom: 25px; animation: pulseGlow 4s infinite ease-in-out;
+        }
+        h2 { font-size: clamp(1.5rem, 4.5vw, 2.1rem); color: var(--accent-primary); margin-top: 35px; }
+        h3 {
+            font-size: clamp(1.25rem, 4vw, 1.7rem); padding-bottom: 8px; margin-top: 28px; margin-bottom: 18px;
+            border-bottom: 1px solid var(--container-border); color: var(--text-primary);
+            transition: border-color var(--transition-speed-med) ease, color var(--transition-speed-med) ease;
+        }
+
+        p, label, .footer p, .results span, .highlight-info p {
+             font-size: clamp(0.95rem, 2.5vw, 1.05rem); line-height: 1.7; color: var(--text-secondary);
+             transition: color var(--transition-speed-med) ease;
+        }
+        label { color: var(--text-primary); font-weight: 500; display: block; margin-bottom: 8px; }
+        strong { color: var(--accent-primary); font-weight: 600; }
+        .bengali { font-family: var(--font-bengali); }
+
+
+        /* --- === Layout & Container === --- */
+        .main-container { position: relative; width: 100%; display: flex; justify-content: center; }
+        .container {
+            padding: clamp(25px, 5vw, 45px) clamp(25px, 6vw, 55px);
+            border-radius: 25px; text-align: center; width: 95%; max-width: 800px;
+            box-shadow: var(--container-shadow); backdrop-filter: blur(18px); border: 1px solid var(--container-border);
+            animation: fadeIn var(--animation-duration) ease-out forwards, upscale var(--animation-duration) ease-out forwards;
+            opacity: 0; transform: scale(0.97); margin-bottom: 35px;
+            transition: background var(--transition-speed-med) ease, border var(--transition-speed-med) ease, box-shadow var(--transition-speed-med) ease;
+        }
+         /* Container glow effect when highlighting */
+        .container.glowing {
+            box-shadow: var(--container-shadow), 0 0 30px 5px rgba(0, 242, 254, 0.2);
+        }
+
+
+        /* --- === Animations === --- */
+        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes upscale { to { transform: scale(1); } }
+        @keyframes pulseGlow { /* Same */
+            0%, 100% { text-shadow: 0 0 10px rgba(0, 242, 254, 0.3), 0 0 20px rgba(0, 242, 254, 0.2); }
+            50% { text-shadow: 0 0 15px rgba(0, 242, 254, 0.5), 0 0 30px rgba(0, 242, 254, 0.3); }
+        }
+        @keyframes cellEnter { /* Smoother entry */
+            from { opacity: 0; transform: translateY(10px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+         @keyframes buttonHover { /* Subtle pulse */
+            0%, 100% { transform: scale(1); box-shadow: var(--button-shadow); }
+            50% { transform: scale(1.03); box-shadow: var(--button-hover-shadow); }
+        }
+        @keyframes resultsFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- Enhanced Persistent Highlight Animation --- */
+        @keyframes pulseHighlight {
+            0% { box-shadow: 0 0 10px 2px currentColor, var(--cell-shadow); transform: scale(1); }
+            50% { box-shadow: 0 0 25px 6px currentColor, var(--cell-shadow); transform: scale(1.03); }
+            100% { box-shadow: 0 0 10px 2px currentColor, var(--cell-shadow); transform: scale(1); }
+        }
+        @keyframes menuSlideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes menuSlideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+
+        /* --- === Form Elements === --- */
+        form { margin: 25px 0; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        .input-group { display: flex; flex-direction: column; width: 100%; max-width: 380px; }
+        input[type="text"], input[type="date"] {
+            width: 100%; padding: 14px 18px; border-radius: 10px; font-size: 1.05rem;
+            font-family: inherit; appearance: none; -webkit-appearance: none; position: relative;
+            color-scheme: dark; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+            transition: box-shadow var(--transition-speed-med) ease, border-color var(--transition-speed-med) ease, background var(--transition-speed-med) ease, color var(--transition-speed-med) ease;
+            border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-primary);
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator { /* Same */
+             background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="%23e0e6f0" d="M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H4V10h16v11zM4 8V5h16v3H4z"/></svg>') no-repeat center;
+             cursor: pointer; opacity: 0.8; transition: opacity var(--transition-speed-med) ease; transform: scale(1.1); padding-left: 8px;
+        }
+        body.light-mode input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.8); }
+        body.dark-mode input[type="date"]::-webkit-calendar-picker-indicator { filter: none; } /* Use default color */
+
+        input[type="text"]:focus, input[type="date"]:focus {
+            outline: none; box-shadow: var(--input-focus-shadow), inset 0 1px 3px rgba(0,0,0,0.1);
+            border-color: var(--accent-primary);
+        }
+
+        button[type="submit"] { /* Same */
+            padding: 15px 35px; background: var(--success-gradient); color: var(--button-text);
+            border: none; border-radius: 12px; cursor: pointer; font-size: 1.15rem; font-weight: 600;
+            font-family: inherit; transition: background var(--transition-speed-med) ease, transform var(--transition-speed-fast) ease, box-shadow var(--transition-speed-med) ease;
+            box-shadow: var(--button-shadow); letter-spacing: 0.5px;
+        }
+        button[type="submit"]:hover { background-position: right center; animation: buttonHover 1.5s infinite ease-in-out; }
+        button[type="submit"]:active { transform: translateY(2px) scale(0.98); box-shadow: 0 2px 5px rgba(46, 204, 113, 0.2); animation: none; }
+
+        /* --- === Magic Square Grid === --- */
+        .magic-box-container {
+            perspective: 1100px; margin-top: 30px; position: relative;
+            transition: box-shadow var(--transition-speed-med) ease; /* For container glow */
+            border-radius: 20px; /* Needed for inner glow */
+        }
+         .magic-box-container.glowing {
+            box-shadow: inset 0 0 35px 10px rgba(0, 242, 254, 0.15), 0 0 20px rgba(0, 242, 254, 0.1);
+        }
+
+        .magic-box {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; /* Slightly smaller gap */
+            width: 100%; max-width: 420px; margin: 20px auto;
+        }
+        .magic-box div { /* Base styles refined */
+            aspect-ratio: 1 / 1; display: flex; justify-content: center; align-items: center;
+            text-align: center; border-radius: 10px; font-size: clamp(1.4rem, 5.5vw, 1.9rem);
+            font-weight: 700; box-shadow: var(--cell-shadow); position: relative; cursor: pointer;
+            transition: transform var(--transition-speed-fast) ease, background var(--transition-speed-med) ease, box-shadow var(--transition-speed-med) ease, border-color var(--transition-speed-med) ease, color var(--transition-speed-med) ease;
+            transform-style: preserve-3d; border: 1.5px solid var(--cell-border); opacity: 0; will-change: transform, background, opacity;
+            background: var(--cell-bg); color: var(--text-primary); /* Apply themed defaults */
+        }
+
+        .magic-box div:hover, .magic-box div:focus { /* Same */
+            transform: scale(var(--cell-hover-scale)) translateZ(20px);
+            box-shadow: var(--cell-hover-shadow); border-color: var(--accent-primary);
+            z-index: 10; outline: none; background: var(--cell-hover-bg);
+        }
+
+        /* --- === Highlighting Styles (MORE DISTINCT) === --- */
+        .magic-box div.highlight {
+            transition: background var(--transition-speed-fast) ease-in-out, color var(--transition-speed-fast) ease-in-out, border-color var(--transition-speed-fast) ease-in-out, box-shadow var(--transition-speed-med) ease;
+            box-shadow: 0 0 15px 3px currentColor, var(--cell-shadow); /* Base Glow */
+            z-index: 5; border-width: 2px;
+            transform: scale(1.03); /* Subtle pop when highlighted */
+        }
+        .magic-box div.persistent-highlight {
+             animation: pulseHighlight 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1); /* Smoother pulse */
+             transform: scale(1.03); /* Keep the pop */
+        }
+
+        /* Specific highlight styles */
+        .magic-box div.highlight-row { background: var(--highlight-row-bg); color: var(--highlight-text-row); border-color: var(--highlight-row-bg); }
+        .magic-box div.highlight-col { background: var(--highlight-col-bg); color: var(--highlight-text-col); border-color: var(--highlight-col-bg); }
+        .magic-box div.highlight-diag { background: var(--highlight-diag-bg); color: var(--highlight-text-diag); border-color: var(--highlight-diag-bg); }
+        .magic-box div.highlight-corners { background: var(--highlight-corners-bg); color: var(--highlight-text-corners); border-color: var(--highlight-corners-bg);}
+        .magic-box div.highlight-center { background: var(--highlight-center-bg); color: var(--highlight-text-center); border-color: var(--highlight-center-bg);}
+        .magic-box div.highlight-subsquare { background: var(--highlight-subsquare-bg); color: var(--highlight-text-subsquare); border-color: var(--highlight-subsquare-bg);}
+        .magic-box div.highlight-midrows { background: var(--highlight-midrows-bg); color: var(--highlight-text-midrows); border-color: var(--highlight-midrows-bg);}
+        .magic-box div.highlight-midcols { background: var(--highlight-midcols-bg); color: var(--highlight-text-midcols); border-color: var(--highlight-midcols-bg);}
+
+        /* --- Date Component Styling (Simplified) --- */
+        /* Remove distracting default styles, let highlights control appearance */
+        .magic-box div.date-component {
+             /* Maybe just font-weight? Or nothing extra? */
+              font-weight: 700; /* Keep bold */
+              /* No special border/bg by default */
+               border-color: var(--cell-border); /* Use standard cell border */
+        }
+         /* Ensure hover applies correctly */
+        .magic-box div.date-component:hover, .magic-box div.date-component:focus {
+             transform: scale(var(--cell-hover-scale)) translateZ(20px);
+             box-shadow: var(--cell-hover-shadow); border-color: var(--accent-primary);
+             background: var(--cell-hover-bg); /* Apply standard hover bg */
+        }
+
+
+        /* --- === Results & Explanation === --- */
+        .results, .explanation { /* Same structure */
+            margin-top: 30px; text-align: left; padding: clamp(20px, 4vw, 30px) clamp(25px, 5vw, 35px);
+            border-radius: 18px; box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1);
+            opacity: 0; transform: translateY(10px);
+            transition: opacity var(--transition-speed-slow) ease-out, transform var(--transition-speed-slow) ease-out, background var(--transition-speed-med) ease, border var(--transition-speed-med) ease;
+            background: var(--results-bg); border: 1px solid var(--container-border);
+        }
+        .results.visible, .explanation.visible { opacity: 1; transform: translateY(0); }
+        .explanation { text-align: justify; } .explanation h2 { text-align: center; margin-bottom: 20px; }
+        .results p { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; margin-bottom: 10px; cursor: pointer; transition: background-color var(--transition-speed-fast) ease; border-radius: 6px; padding: 4px 6px; }
+        .results p:hover { background-color: rgba(128, 128, 128, 0.1); }
+        .results p strong { flex-shrink: 0; pointer-events: none; }
+        .results p span:not(.magic-sum) { pointer-events: none; color: var(--text-primary); font-weight: 500; }
+
+        .magic-sum { /* Same */
+            font-size: 1.5rem; font-weight: 700; color: var(--success-color); padding: 4px 10px;
+            background: rgba(46, 204, 113, 0.15); border-radius: 8px; display: inline-block;
+            margin-left: 8px; vertical-align: middle; pointer-events: none;
+        }
+
+        /* --- === Highlight Info Box === --- */
+        .highlight-info { /* Same */
+            margin-top: 20px; padding: 15px 20px; border-radius: 12px; text-align: center;
+            min-height: 70px; transition: opacity var(--transition-speed-med) ease, transform var(--transition-speed-med) ease-out, background var(--transition-speed-med) ease, border var(--transition-speed-med) ease;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15); opacity: 0; transform: translateY(8px);
+            background: rgba(0, 242, 254, 0.08); border: 1px solid rgba(0, 242, 254, 0.2);
+        }
+        .highlight-info.visible { opacity: 1; transform: translateY(0); }
+        .highlight-info p { margin: 3px 0; font-size: 1rem; color: var(--text-primary); }
+        .highlight-info .highlight-description { font-weight: 600; color: var(--accent-primary); font-size: 1.05rem; }
+        .highlight-info .highlight-calculation { font-family: monospace; font-size: 1rem; word-wrap: break-word; color: var(--text-secondary); }
+        .highlight-info .highlight-sum { font-size: 1.15rem; color: var(--success-color); font-weight: 700; }
+        .highlight-info .highlight-warning { color: var(--warning-color); font-size: 0.8em; margin-top: 3px;}
+
+
+        /* --- === Settings Menu & Button === --- */
+        .settings-btn { /* Same */
+            position: absolute; top: 18px; right: 18px; background: none; border: none; cursor: pointer;
+            padding: 7px; z-index: 1100; transition: transform var(--transition-speed-fast) ease;
+        }
+        .settings-btn svg { width: 26px; height: 26px; display: block; fill: var(--icon-color); transition: fill var(--transition-speed-med) ease;}
+        .settings-btn:hover { transform: scale(1.1) rotate(35deg); }
+        .settings-btn:hover svg { fill: var(--icon-hover-color); }
+
+        .settings-menu { /* Same structure, themed bg/border/shadow */
+            position: fixed; top: 0; right: 0; width: 100%; max-width: 300px; height: 100%;
+            padding: 65px 25px 25px 25px; border-radius: 0;
+            box-shadow: var(--menu-shadow); z-index: 1090; transform: translateX(100%); opacity: 0;
+            transition: background var(--transition-speed-med) ease, box-shadow var(--transition-speed-med) ease, border var(--transition-speed-med) ease;
+            animation: none; overflow-y: auto;
+            background: var(--menu-bg); border-left: 1px solid var(--menu-border);
+        }
+        .settings-menu.open { animation: menuSlideIn var(--transition-speed-med) forwards; }
+        .settings-menu.closing { animation: menuSlideOut var(--transition-speed-med) forwards; }
+        .settings-menu h2 { margin-top: 0; margin-bottom: 20px; text-align: center; font-size: 1.7rem; color: var(--text-primary);}
+        .menu-section { margin-bottom: 20px; }
+        .menu-section h3 { font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-bottom: 4px; border-bottom: 1px solid var(--menu-border); color: var(--text-secondary); transition: border-color var(--transition-speed-med) ease, color var(--transition-speed-med) ease;}
+        .menu-item { /* Themed colors/hover */
+            display: flex; align-items: center; padding: 10px; cursor: pointer;
+            border: none; background: none; width: 100%; text-align: left;
+            font-size: 1.05rem; font-family: inherit;
+            transition: color var(--transition-speed-fast) ease, background-color var(--transition-speed-fast) ease;
+            border-radius: 6px; color: var(--text-primary);
+        }
+        .menu-item svg { width: 18px; height: 18px; margin-right: 12px; flex-shrink: 0; fill: var(--icon-color); transition: fill var(--transition-speed-fast) ease;}
+        .menu-item:hover { background-color: rgba(128, 128, 128, 0.1); color: var(--text-primary); }
+        .menu-item:hover svg { fill: var(--icon-hover-color); }
+
+        .menu-close-btn { /* Same */
+            position: absolute; top: 18px; right: 18px; background: none; border: none;
+            padding: 7px; cursor: pointer; transition: transform var(--transition-speed-fast) ease;
+        }
+        .menu-close-btn svg { width: 22px; height: 22px; fill: var(--icon-color); transition: fill var(--transition-speed-med) ease;}
+        .menu-close-btn:hover { transform: scale(1.15); }
+        .menu-close-btn:hover svg { fill: var(--icon-hover-color); }
+
+        /* Sub-panels */
+        .menu-panel { display: none; margin-top: 15px; }
+        .menu-panel.active { display: block; }
+        .panel-back-btn { /* Themed */
+             margin-bottom: 12px; display: inline-flex; align-items: center; font-size: 0.95rem; cursor: pointer;
+             background: none; border: none; padding: 4px 6px; border-radius: 4px;
+             transition: background-color 0.2s ease; color: var(--text-secondary);
+        }
+        .panel-back-btn:hover { background-color: rgba(128, 128, 128, 0.1); }
+        .panel-back-btn svg { width: 14px; height: 14px; margin-right: 6px; transform: rotate(180deg); fill: var(--icon-color); transition: fill var(--transition-speed-med) ease;}
+
+        /* History List (Themed) */
+        #historyList { list-style: none; padding: 0; max-height: 280px; overflow-y: auto; }
+        .history-item {
+            padding: 10px 12px; margin-bottom: 6px; border-radius: 6px; cursor: pointer;
+            transition: background-color var(--transition-speed-fast) ease;
+            border: 1px solid var(--menu-border); background-color: var(--history-item-bg); color: var(--text-primary);
+        }
+        .history-item:hover { background-color: var(--history-item-hover-bg); }
+        .history-item span { display: block; }
+        .history-name { font-weight: 600; font-size: 1rem; margin-bottom: 2px; }
+        .history-date { font-size: 0.85rem; color: var(--text-secondary); transition: color var(--transition-speed-med) ease;}
+        #clearHistoryBtn { /* Same */
+             margin-top: 12px; background-color: var(--error-color); color: white; border: none; padding: 7px 12px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; transition: background-color 0.2s ease; display: block; width: 100%;
+        }
+         #clearHistoryBtn:hover { background-color: #c0392b; }
+
+        /* About Panel (Themed) */
+        #aboutPanel p { font-size: 0.9rem; line-height: 1.65; text-align: justify; margin-bottom: 8px; color: var(--text-secondary); transition: color var(--transition-speed-med) ease;}
+
+        /* --- === Share Button === --- */
+        .share-btn { /* Same */
+             display: inline-flex; align-items: center; justify-content: center; margin-top: 18px;
+             padding: 9px 18px; background: var(--accent-gradient); color: #141e30;
+             border: none; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 600;
+             transition: transform var(--transition-speed-fast) ease, box-shadow var(--transition-speed-fast) ease;
+             box-shadow: 0 3px 8px rgba(0, 242, 254, 0.2);
+        }
+        .share-btn svg { width: 16px; height: 16px; margin-right: 7px; fill: #141e30; }
+        .share-btn:hover { transform: scale(1.05); box-shadow: 0 5px 12px rgba(0, 242, 254, 0.3); }
+        .share-btn:active { transform: scale(0.98); }
+
+        /* --- === Footer === --- */
+        .footer { /* Same */
+            margin-top: 40px; padding: 15px; font-size: 0.9rem; text-align: center;
+            opacity: 0; animation: fadeIn 1s ease-out 1s forwards; width: 100%; color: var(--footer-text);
+            transition: color var(--transition-speed-med) ease;
+        }
+        .footer a { /* Same */ color: var(--accent-secondary); text-decoration: none; transition: color var(--transition-speed-med) ease, text-shadow var(--transition-speed-med) ease; font-weight: 500; }
+        .footer a:hover { color: var(--accent-primary); text-shadow: 0 0 5px var(--accent-primary); }
+
+        /* --- === Utility & Accessibility === --- */
+        .hidden { display: none !important; }
+        *:focus-visible { outline: 3px solid var(--accent-primary); outline-offset: 3px; border-radius: 5px; }
+        *:focus:not(:focus-visible) { outline: none; }
+        button:focus:not(:focus-visible), input:focus:not(:focus-visible), .magic-box div:focus:not(:focus-visible), .history-item:focus:not(:focus-visible) { outline: none; }
+
+        /* --- === Responsive Overrides === --- */
+         @media (max-width: 768px) { /* Same */
+            .settings-menu { max-width: 280px; padding: 60px 20px 20px 20px;}
+            .container { max-width: 90%; }
+            .magic-box { max-width: 380px; gap: 10px;}
+            .magic-box div {font-size: 1.5rem;}
+         }
+        @media (max-width: 480px) { /* Same */
+            body { padding: 20px 8px; }
+            .container { padding: 20px 12px; border-radius: 18px; max-width: 100%; }
+            h1 { font-size: 1.6rem; }
+             .magic-box { max-width: 100%; gap: 6px; margin: 15px auto; }
+             .magic-box div { font-size: 1.1rem; border-radius: 6px; font-weight: 600; }
+             button[type="submit"] { padding: 12px 20px; font-size: 1rem; width: 100%; max-width: 280px; }
+             input[type="text"], input[type="date"] { width: 100%; max-width: 280px; padding: 12px 15px; font-size: 0.95rem;}
+             .results, .explanation { padding: 15px 12px; }
+             label { font-size: 0.95rem; }
+             .highlight-info { padding: 12px; min-height: 65px;}
+             .settings-btn { top: 12px; right: 12px; }
+             .settings-menu { max-width: 230px; padding: 45px 12px 12px 12px; }
+             .menu-item { font-size: 0.95rem; }
+             .share-btn { font-size: 0.85rem; padding: 7px 14px; }
+        }
+
+    </style>
+</head>
+<body class="dark-mode"> <!-- Default to dark mode -->
+
+    <div class="main-container">
+        <!-- Settings Button -->
+        <button class="settings-btn" id="settingsBtn" aria-label="Open Settings Menu">
+             <svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"></path></svg>
+        </button>
+
+        <!-- Settings Menu -->
+        <div class="settings-menu" id="settingsMenu">
+             <button class="menu-close-btn" id="menuCloseBtn" aria-label="Close Settings Menu">
+                 <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path></svg>
+            </button>
+            <!-- Main Menu / Panels structure remains the same -->
+             <div id="mainMenu">
+                 <h2 data-lang="menuTitle">সেটিংস</h2>
+                 <div class="menu-section">
+                     <h3 data-lang="menuDisplay">ডিসপ্লে</h3>
+                     <button class="menu-item" id="toggleDarkModeBtn">
+                        <svg viewBox="0 0 24 24"><path d="M10 2c-1.82 0-3.53.5-5 1.35C7.99 5.08 10 8.3 10 12s-2.01 6.92-5 8.65C6.47 21.5 8.18 22 10 22c5.52 0 10-4.48 10-10S15.52 2 10 2z"></path></svg>
+                         <span data-lang="menuDarkMode">ডার্ক মোড</span>
+                     </button>
+                      <button class="menu-item" id="toggleLanguageBtn">
+                        <svg viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"></path></svg>
+                        <span data-lang="menuLanguage">ভাষা পরিবর্তন (EN)</span>
+                     </button>
+                 </div>
+                 <div class="menu-section">
+                     <h3 data-lang="menuContent">বিষয়বস্তু</h3>
+                     <button class="menu-item" id="viewHistoryBtn">
+                         <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 00-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0013 21a9 9 0 000-18zm-1 5v5l4.25 2.52.77-1.28-3.52-2.09V8z"></path></svg>
+                        <span data-lang="menuHistory">হিস্টোরি</span>
+                     </button>
+                      <button class="menu-item" id="viewAboutBtn">
+                        <svg viewBox="0 0 24 24"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"></path></svg>
+                        <span data-lang="menuAbout">রামানুজন</span>
+                     </button>
+                 </div>
+            </div>
+             <div class="menu-panel" id="historyPanel">
+                <button class="panel-back-btn" data-target="mainMenu"> <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"></path></svg> <span data-lang="back">ফিরে যান</span> </button>
+                 <h2 data-lang="historyTitle">সংরক্ষিত স্কয়ার</h2> <ul id="historyList"> <p data-lang="noHistory">কোনো হিস্টোরি নেই।</p> </ul> <button id="clearHistoryBtn" data-lang="clearHistory">হিস্টোরি মুছুন</button>
+            </div>
+             <div class="menu-panel" id="aboutPanel">
+                <button class="panel-back-btn" data-target="mainMenu"> <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"></path></svg> <span data-lang="back">ফিরে যান</span> </button>
+                <h2 data-lang="aboutTitle">শ্রীনিবাস রামানুজন</h2>
+                <p data-lang="aboutText1">শ্রীনিবাস রামানুজন (১৮৮৭-১৯২০) ছিলেন একজন ভারতীয় গণিতবিদ যিনি গণিতের বিশ্লেষণ, সংখ্যা তত্ত্ব, অসীম ধারা এবং ধারাবাহিক ভগ্নাংশের ক্ষেত্রে গুরুত্বপূর্ণ অবদান রেখেছিলেন। প্রায় স্বশিক্ষিত হয়েও তিনি গণিতের এমন সব সূত্র ও তত্ত্ব আবিষ্কার করেন যা তৎকালীন গণিতবিদদের বিস্মিত করেছিল।</p>
+                <p data-lang="aboutText2">তাঁর ম্যাজিক স্কয়ারটি তাঁর অসাধারণ বুদ্ধিমত্তার একটি ছোট উদাহরণ। এটি কেবল সাধারণ ম্যাজিক স্কয়ার নয়, এর মধ্যে আরও অনেক গাণিতিক সামঞ্জস্য লুকিয়ে আছে।</p>
+             </div>
+        </div>
+
+        <div class="container" id="mainContentContainer">
+            <h1><span class="bengali" data-lang="titleBn">রামানুজনের জাদুকরী বিশ্ব</span> | <span data-lang="titleEn">Ramanujan's Magical World</span></h1>
+
+            <section class="explanation visible" aria-labelledby="explanation-title">
+                 <h2 id="explanation-title" data-lang="explanationTitle">গণিতের এক বিস্ময়কর জগৎ</h2>
+                <p data-lang="explanation1">ম্যাজিক স্কয়ার গণিতের এক মজার শাখা। এটি এমন এক বর্গক্ষেত্র যেখানে সংখ্যাগুলো এমনভাবে সাজানো হয় যে, প্রতি সারি, প্রতি কলাম এবং কোণাকুণি যোগ করলে একই ফল পাওয়া যায় – যাকে বলে ম্যাজিক যোগফল। শ্রীনিবাস রামানুজন, ভারতের কিংবদন্তী গণিতবিদ, শুধু সাধারণ ম্যাজিক স্কয়ার তৈরি করেননি, তাঁর তৈরি স্কয়ারের প্রতিটি কোণা, মাঝের অংশ, এমনকি ছোট ছোট ২x২ বর্গক্ষেত্রের যোগফলও একই ম্যাজিক সংখ্যা দেয়!</p>
+                <p data-lang="explanation2">Explore this magic with your own special date. Enter your name and date below, then click the cells or the result labels to see the patterns!</p>
+            </section>
+
+            <form id="magicForm">
+                 <div class="input-group">
+                    <label for="userName" data-lang="nameLabel">আপনার নাম:</label>
+                    <input type="text" id="userName" aria-label="User Name Input">
+                 </div>
+                 <div class="input-group">
+                    <label for="birthdate" data-lang="dateLabel">আপনার বিশেষ তারিখ দিন:</label>
+                    <input type="date" id="birthdate" required aria-required="true" aria-label="Special Date Input">
+                 </div>
+                <button type="submit" data-lang="generateBtn">ম্যাজিক তৈরি করুন</button>
+            </form>
+
+            <div id="magicBoxContainer" class="magic-box-container hidden" >
+                <div id="magicBox" class="magic-box" role="grid" aria-label="Generated Magic Square"></div>
+                 <button class="share-btn hidden" id="shareBtn">
+                     <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 8.11C7.5 7.61 6.79 7.3 6 7.3c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"></path></svg>
+                     <span data-lang="shareBtn">শেয়ার করুন</span>
+                 </button>
+            </div>
+
+            <div id="highlightInfo" class="highlight-info hidden" aria-live="polite" aria-atomic="true"></div>
+
+            <div id="results" class="results hidden" aria-labelledby="results-title">
+                 <h3 id="results-title" data-lang="resultsTitle">স্কয়ারের রহস্য</h3>
+                <p data-highlight-type="SUM"><strong><span data-lang="magicSumLabel">ম্যাজিক যোগফল:</span></strong> <span id="magicSumValue" class="magic-sum">N/A</span></p>
+                <p data-highlight-type="ROW"><strong><span data-lang="rowSumLabel">সারি যোগফল:</span></strong> <span id="rowSums">N/A</span></p>
+                <p data-highlight-type="COL"><strong><span data-lang="colSumLabel">কলাম যোগফল:</span></strong> <span id="colSums">N/A</span></p>
+                <p data-highlight-type="DIAG"><strong><span data-lang="diagSumLabel">কর্ণ যোগফল:</span></strong> <span id="diagSums">N/A</span></p>
+                <p data-highlight-type="CORNERS"><strong><span data-lang="cornerSumLabel">কোণার যোগফল:</span></strong> <span id="cornerSum">N/A</span></p>
+                <p data-highlight-type="CENTER"><strong><span data-lang="centerSumLabel">কেন্দ্রীয় ২x২ যোগফল:</span></strong> <span id="centerSum">N/A</span></p>
+                <p data-highlight-type="SUBSQUARE"><strong><span data-lang="subSquareSumLabel">২x২ সাব-স্কয়ার যোগফল:</span></strong> <span id="subSquareSums">N/A</span></p>
+                <p data-highlight-type="MIDROWS"><strong><span data-lang="midRowSumLabel">প্রথম/শেষ সারি মধ্য যোগফল:</span></strong> <span id="midRowSums">N/A</span></p>
+                <p data-highlight-type="MIDCOLS"><strong><span data-lang="midColSumLabel">প্রথম/শেষ কলাম মধ্য যোগফল:</span></strong> <span id="midColSums">N/A</span></p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p><span data-lang="footerText1">ডিজিটাল জাদু ❤️ by</span> <a href="https://github.com/YOUR_GITHUB_USERNAME" target="_blank" rel="noopener noreferrer">RAHAD</a> | <span data-lang="footerText2">রামানুজনের প্রতি শ্রদ্ধাঞ্জলি</span></p>
+    </footer>
+
+    <script>
+        // --- === Application State & Configuration === ---
+        const AppState = {
+            elements: {}, currentMagicSquare: [], magicSum: 0, currentName: '', currentDate: '',
+            history: [], currentMode: 'dark', currentLanguage: 'bn', isMenuOpen: false,
+            activeMenuPanel: 'mainMenu', isAutoHighlighting: false, autoHighlightIntervalId: null,
+            autoHighlightStep: 0, persistentHighlightType: null
+        };
+        const Config = { /* same as before */
+            localStorageKeys: { mode: 'ramanujanMagic_mode', language: 'ramanujanMagic_language', history: 'ramanujanMagic_history' },
+            autoHighlightDelay: 1600, // Slightly faster delay
+        };
+        const LangStrings = { /* same as before */
+             bn: { menuTitle: "সেটিংস", menuDisplay: "ডিসপ্লে", menuDarkMode: "ডার্ক মোড", menuLightMode: "লাইট মোড", menuLanguage: "ভাষা পরিবর্তন (EN)", menuContent: "বিষয়বস্তু", menuHistory: "হিস্টোরি", menuAbout: "রামানুজন", back: "ফিরে যান", historyTitle: "সংরক্ষিত স্কয়ার", noHistory: "কোনো হিস্টোরি নেই।", clearHistory: "হিস্টোরি মুছুন", aboutTitle: "শ্রীনিবাস রামানুজন", aboutText1: "শ্রীনিবাস রামানুজন (১৮৮৭-১৯২০) ছিলেন একজন ভারতীয় গণিতবিদ যিনি গণিতের বিশ্লেষণ, সংখ্যা তত্ত্ব, অসীম ধারা এবং ধারাবাহিক ভগ্নাংশের ক্ষেত্রে গুরুত্বপূর্ণ অবদান রেখেছিলেন। প্রায় স্বশিক্ষিত হয়েও তিনি গণিতের এমন সব সূত্র ও তত্ত্ব আবিষ্কার করেন যা তৎকালীন গণিতবিদদের বিস্মিত করেছিল।", aboutText2: "তাঁর ম্যাজিক স্কয়ারটি তাঁর অসাধারণ বুদ্ধিমত্তার একটি ছোট উদাহরণ। এটি কেবল সাধারণ ম্যাজিক স্কয়ার নয়, এর মধ্যে আরও অনেক গাণিতিক সামঞ্জস্য লুকিয়ে আছে।", titleBn: "রামানুজনের জাদুকরী বিশ্ব", titleEn: "Ramanujan's Magical World", explanationTitle: "গণিতের এক বিস্ময়কর জগৎ", explanation1: "ম্যাজিক স্কয়ার গণিতের এক মজার শাখা। এটি এমন এক বর্গক্ষেত্র যেখানে সংখ্যাগুলো এমনভাবে সাজানো হয় যে, প্রতি সারি, প্রতি কলাম এবং কোণাকুণি যোগ করলে একই ফল পাওয়া যায় – যাকে বলে ম্যাজিক যোগফল। শ্রীনিবাস রামানুজন, ভারতের কিংবদন্তী গণিতবিদ, শুধু সাধারণ ম্যাজিক স্কয়ার তৈরি করেননি, তাঁর তৈরি স্কয়ারের প্রতিটি কোণা, মাঝের অংশ, এমনকি ছোট ছোট ২x২ বর্গক্ষেত্রের যোগফলও একই ম্যাজিক সংখ্যা দেয়!", explanation2: "আপনার নিজের বিশেষ তারিখ দিয়ে এই জাদুটি অন্বেষণ করুন। নীচে আপনার নাম এবং তারিখ লিখুন, তারপরে প্যাটার্নগুলি দেখতে সেল বা ফলাফলের লেবেলগুলিতে ক্লিক করুন!", nameLabel: "আপনার নাম:", dateLabel: "আপনার বিশেষ তারিখ দিন:", generateBtn: "ম্যাজিক তৈরি করুন", resultsTitle: "স্কয়ারের রহস্য", magicSumLabel: "ম্যাজিক যোগফল:", rowSumLabel: "সারি যোগফল:", colSumLabel: "কলাম যোগফল:", diagSumLabel: "কর্ণ যোগফল:", cornerSumLabel: "কোণার যোগফল:", centerSumLabel: "কেন্দ্রীয় ২x২ যোগফল:", subSquareSumLabel: "২x২ সাব-স্কয়ার যোগফল:", midRowSumLabel: "প্রথম/শেষ সারি মধ্য যোগফল:", midColSumLabel: "প্রথম/শেষ কলাম মধ্য যোগফল:", shareBtn: "শেয়ার করুন", footerText1: "ডিজিটাল জাদু ❤️ by", footerText2: "রামানুজনের প্রতি শ্রদ্ধাঞ্জলি", highlightDefault1: "ঘরগুলোতে ক্লিক করুন!", highlightDefault2: "অথবা ফলাফলের লেবেলে ক্লিক করুন।", highlightRow: "সারি", highlightCol: "কলাম", highlightDiag1: "প্রধান কর্ণ (\\)", highlightDiag2: "প্রধান কর্ণ (/)", highlightCorners: "চার কোণা", highlightCenter: "কেন্দ্রীয় ২x২", highlightSubTL: "উপর-বাম ২x২", highlightSubTR: "উপর-ডান ২x২", highlightSubBL: "নীচে-বাম ২x২", highlightSubBR: "নীচে-ডান ২x২", highlightMidRows: "১ম/শেষ সারি মধ্য", highlightMidCols: "১ম/শেষ কলাম মধ্য", confirmClearHistory: "আপনি কি নিশ্চিত যে সমস্ত হিস্টোরি মুছে ফেলতে চান?", historyCleared: "হিস্টোরি মুছে ফেলা হয়েছে।"},
+             en: { menuTitle: "Settings", menuDisplay: "Display", menuDarkMode: "Dark Mode", menuLightMode: "Light Mode", menuLanguage: "Change Language (BN)", menuContent: "Content", menuHistory: "History", menuAbout: "Ramanujan", back: "Back", historyTitle: "Saved Squares", noHistory: "No history available.", clearHistory: "Clear History", aboutTitle: "Srinivasa Ramanujan", aboutText1: "Srinivasa Ramanujan (1887-1920) was an Indian mathematician who made substantial contributions to mathematical analysis, number theory, infinite series, and continued fractions. Largely self-taught, he discovered theorems that baffled mathematicians of his time.", aboutText2: "His magic square is a small example of his genius. It's not just a standard magic square; many other mathematical harmonies are hidden within it.", titleBn: "Ramanujan's Magical World", titleEn: "Ramanujan's Magical World", explanationTitle: "A Wonderful World of Mathematics", explanation1: "Magic squares are a fascinating part of mathematics. Numbers in a grid are arranged so that every row, column, and diagonal sums to the same 'magic constant'. Srinivasa Ramanujan, the legendary Indian mathematician, created a super magic square where not only rows, columns, and diagonals, but also corners, the central square, and even smaller 2x2 squares add up to the same magic number!", explanation2: "Explore this magic with your own special date. Enter your name and date below, then click the cells or the result labels to see the patterns!", nameLabel: "Your Name:", dateLabel: "Enter Your Special Date:", generateBtn: "Create Magic", resultsTitle: "Square Secrets", magicSumLabel: "Magic Sum:", rowSumLabel: "Row Sums:", colSumLabel: "Column Sums:", diagSumLabel: "Diagonal Sums:", cornerSumLabel: "Corners Sum:", centerSumLabel: "Central 2x2 Sum:", subSquareSumLabel: "2x2 Sub-squares Sum:", midRowSumLabel: "1st/Last Row Mid Sum:", midColSumLabel: "1st/Last Col Mid Sum:", shareBtn: "Share", footerText1: "Digital Magic ❤️ by", footerText2: "Tribute to Ramanujan", highlightDefault1: "Click the cells!", highlightDefault2: "Or click the result labels.", highlightRow: "Row", highlightCol: "Column", highlightDiag1: "Main Diagonal (\\)", highlightDiag2: "Main Diagonal (/)", highlightCorners: "Four Corners", highlightCenter: "Central 2x2", highlightSubTL: "Top-Left 2x2", highlightSubTR: "Top-Right 2x2", highlightSubBL: "Bottom-Left 2x2", highlightSubBR: "Bottom-Right 2x2", highlightMidRows: "1st/Last Row Mid", highlightMidCols: "1st/Last Col Mid", confirmClearHistory: "Are you sure you want to clear all history?", historyCleared: "History cleared."}
+        };
+
+        // --- === Utility Functions === ---
+        const $ = (selector) => document.querySelector(selector);
+        const $$ = (selector) => document.querySelectorAll(selector);
+        const formatTwoDigits = (num) => { /* same */ const n=parseInt(num,10); return isNaN(n)?'??':(n>=0&&n<10?'0'+n:''+n); };
+        const getText = (key) => LangStrings[AppState.currentLanguage]?.[key] || key; // Robust fallback
+
+        // --- === Initialization === ---
+        function initializeApp() { /* same structure, calls refined funcs */
+            console.log("Initializing App...");
+            cacheDOMElements();
+            if (!checkElements()) return false;
+            loadPreferences(); // Load first
+            updateUIText();    // Apply loaded lang
+            updateThemeUI();   // Apply loaded theme
+            resetDisplay();
+            setupEventListeners();
+            loadHistory();
+            console.log("App Initialized Successfully.");
+            return true;
+        }
+        function cacheDOMElements() { /* same as before */
+             AppState.elements = { body: document.body, mainContainer: $('.main-container'), container: $('.container'), magicForm: $('#magicForm'), userNameInput: $('#userName'), birthdateInput: $('#birthdate'), magicBoxContainer: $('#magicBoxContainer'), magicBox: $('#magicBox'), resultsDiv: $('#results'), highlightInfoDiv: $('#highlightInfo'), settingsBtn: $('#settingsBtn'), settingsMenu: $('#settingsMenu'), menuCloseBtn: $('#menuCloseBtn'), mainMenuPanel: $('#mainMenu'), historyPanel: $('#historyPanel'), aboutPanel: $('#aboutPanel'), toggleDarkModeBtn: $('#toggleDarkModeBtn'), toggleLanguageBtn: $('#toggleLanguageBtn'), viewHistoryBtn: $('#viewHistoryBtn'), viewAboutBtn: $('#viewAboutBtn'), historyList: $('#historyList'), clearHistoryBtn: $('#clearHistoryBtn'), shareBtn: $('#shareBtn'), magicSumValueSpan: $('#magicSumValue'), rowSumsSpan: $('#rowSums'), colSumsSpan: $('#colSums'), diagSumsSpan: $('#diagSums'), cornerSumSpan: $('#cornerSum'), centerSumSpan: $('#centerSum'), subSquareSumsSpan: $('#subSquareSums'), midRowSumsSpan: $('#midRowSums'), midColSumsSpan: $('#midColSums'), panelBackBtns: $$('.panel-back-btn') };
+        }
+        function checkElements() { /* same as before */
+             const essential = ['body', 'magicForm', 'birthdateInput', 'magicBox', 'resultsDiv', 'highlightInfoDiv', 'settingsBtn', 'settingsMenu']; for (const key of essential) { if (!AppState.elements[key]) { console.error(`Missing Element: ${key}`); return false; } } return true;
+        }
+        function setupEventListeners() { /* same as before */
+            AppState.elements.magicForm.addEventListener('submit', handleFormSubmit); AppState.elements.settingsBtn.addEventListener('click', toggleMenu); AppState.elements.menuCloseBtn.addEventListener('click', toggleMenu); AppState.elements.toggleDarkModeBtn.addEventListener('click', toggleDarkMode); AppState.elements.toggleLanguageBtn.addEventListener('click', toggleLanguage); AppState.elements.viewHistoryBtn.addEventListener('click', () => showPanel('historyPanel')); AppState.elements.viewAboutBtn.addEventListener('click', () => showPanel('aboutPanel')); AppState.elements.clearHistoryBtn.addEventListener('click', clearHistory); AppState.elements.shareBtn.addEventListener('click', shareToWhatsApp); AppState.elements.panelBackBtns.forEach(btn => { btn.addEventListener('click', (e) => showPanel(e.currentTarget.dataset.target || 'mainMenu')); }); AppState.elements.resultsDiv.querySelectorAll('p[data-highlight-type]').forEach(p => { p.addEventListener('click', handleResultLabelClick); }); AppState.elements.historyList.addEventListener('click', handleHistoryItemClick); AppState.elements.magicBox.addEventListener('click', handleCellClick); // Delegated listener
+        }
+
+        // --- === Language & Theme === ---
+        function updateUIText() { /* same logic, ensures robustness */
+             $$('[data-lang]').forEach(el => {
+                const key = el.dataset.lang;
+                const text = getText(key);
+                if (key === 'menuLanguage') { el.textContent = text + (AppState.currentLanguage === 'bn' ? ' (EN)' : ' (BN)'); }
+                else if (key === 'menuDarkMode' || key === 'menuLightMode') { el.textContent = AppState.currentMode === 'dark' ? getText('menuLightMode') : getText('menuDarkMode'); }
+                else { el.textContent = text; }
+            });
+             const nameInput = AppState.elements.userNameInput;
+             if (nameInput) nameInput.placeholder = AppState.currentLanguage === 'bn' ? "নাম (ঐচ্ছিক)" : "Name (Optional)";
+        }
+        function toggleLanguage() { /* same */ AppState.currentLanguage = (AppState.currentLanguage === 'bn' ? 'en' : 'bn'); document.documentElement.lang = AppState.currentLanguage; updateUIText(); savePreferences(); }
+        function updateThemeUI() { /* same */ AppState.elements.body.classList.toggle('light-mode', AppState.currentMode === 'light'); AppState.elements.body.classList.toggle('dark-mode', AppState.currentMode === 'dark'); const btnSpan = AppState.elements.toggleDarkModeBtn?.querySelector('span'); if (btnSpan) { btnSpan.textContent = AppState.currentMode === 'dark' ? getText('menuLightMode') : getText('menuDarkMode'); } }
+        function toggleDarkMode() { /* same */ AppState.currentMode = (AppState.currentMode === 'dark' ? 'light' : 'dark'); updateThemeUI(); savePreferences(); }
+        function savePreferences() { /* same */ try { localStorage.setItem(Config.localStorageKeys.mode, AppState.currentMode); localStorage.setItem(Config.localStorageKeys.language, AppState.currentLanguage); } catch (e) { console.warn("Pref save error:", e); } }
+        function loadPreferences() { /* same */ try { const mode = localStorage.getItem(Config.localStorageKeys.mode); const lang = localStorage.getItem(Config.localStorageKeys.language); if (mode === 'light' || mode === 'dark') AppState.currentMode = mode; if (lang === 'bn' || lang === 'en') AppState.currentLanguage = lang; document.documentElement.lang = AppState.currentLanguage; } catch (e) { console.warn("Pref load error:", e); } }
+
+        // --- === Settings Menu Logic === ---
+        function toggleMenu() { /* same animation logic */
+            const menu = AppState.elements.settingsMenu; if (!menu) return; AppState.isMenuOpen = !AppState.isMenuOpen;
+            if (AppState.isMenuOpen) { menu.classList.remove('closing'); menu.style.display = 'block'; setTimeout(() => menu.classList.add('open'), 10); showPanel('mainMenu'); }
+            else { menu.classList.remove('open'); menu.classList.add('closing'); menu.addEventListener('animationend', () => { if (!AppState.isMenuOpen) menu.style.display = 'none'; }, { once: true }); }
+        }
+        function showPanel(panelId) { /* same */ $$('.menu-panel').forEach(p => p.classList.remove('active')); const target = $(`#${panelId}`); if (target) target.classList.add('active'); AppState.activeMenuPanel = panelId; if (panelId === 'historyPanel') displayHistory(); }
+
+        // --- === Display Management === ---
+        function resetDisplay() { /* same + container glow reset */
+            console.log("Resetting display..."); stopAutoHighlight(); clearPersistentHighlight();
+            if (AppState.elements.magicBox) AppState.elements.magicBox.innerHTML = '';
+            if (AppState.elements.magicBoxContainer) { AppState.elements.magicBoxContainer.classList.add('hidden'); AppState.elements.magicBoxContainer.classList.remove('glowing'); } // Reset glow
+            if (AppState.elements.shareBtn) AppState.elements.shareBtn.classList.add('hidden');
+            if (AppState.elements.resultsDiv) { AppState.elements.resultsDiv.classList.add('hidden'); AppState.elements.resultsDiv.classList.remove('visible'); const spans=['magicSumValueSpan','rowSumsSpan','colSumsSpan','diagSumsSpan','cornerSumSpan','centerSumSpan','subSquareSumsSpan','midRowSumsSpan','midColSumsSpan']; spans.forEach(k => {if(AppState.elements[k]) AppState.elements[k].textContent='N/A';}); }
+            if (AppState.elements.highlightInfoDiv) { AppState.elements.highlightInfoDiv.classList.add('hidden'); AppState.elements.highlightInfoDiv.classList.remove('visible'); AppState.elements.highlightInfoDiv.innerHTML = ''; }
+        }
+        function showDynamicSections() { /* same */
+            if (AppState.elements.magicBoxContainer) AppState.elements.magicBoxContainer.classList.remove('hidden');
+            if (AppState.elements.shareBtn) AppState.elements.shareBtn.classList.remove('hidden');
+            if (AppState.elements.resultsDiv) { AppState.elements.resultsDiv.classList.remove('hidden'); setTimeout(() => AppState.elements.resultsDiv.classList.add('visible'), 50); }
+            if (AppState.elements.highlightInfoDiv) { AppState.elements.highlightInfoDiv.classList.remove('hidden'); AppState.elements.highlightInfoDiv.innerHTML = getDefaultHighlightInfo(); setTimeout(() => AppState.elements.highlightInfoDiv.classList.add('visible'), 50); }
+        }
+        function getDefaultHighlightInfo() { /* uses getText */ return `<p class="highlight-description">${getText('highlightDefault1')}</p><p>${getText('highlightDefault2')}</p>`; }
+
+        // --- === Magic Square Logic & Display === ---
+        function generateMagicSquare(birthdate) { /* same as before */ return (() => { try { const a = birthdate.getDate(), b = birthdate.getMonth() + 1, y = birthdate.getFullYear(), c = Math.floor(y / 100), d = y % 100; const s = [[a, b, c, d], [d + 1, c - 1, b - 3, a + 3], [b - 2, a + 2, d + 2, c - 2], [c + 1, d - 1, a + 1, b - 1]]; for (const r of s) for (const n of r) if (!Number.isFinite(n)) throw new Error(`Invalid: ${n}`); AppState.currentMagicSquare = s; AppState.magicSum = s[0].reduce((sum, val) => sum + val, 0); console.log("Sum:", AppState.magicSum); return s.map(r => r.map(formatTwoDigits)); } catch (e) { console.error("Gen Error:", e); displayError(getText('errorGenerate')); return null; } })(); }
+        function displayMagicSquare(square) { /* same */ if (!AppState.elements.magicBox) return; AppState.elements.magicBox.innerHTML = ''; cellHighlightState = {}; AppState.elements.magicBox.addEventListener('click', handleCellClick); square.forEach((row, rIdx) => { row.forEach((cellVal, cIdx) => { const cell = document.createElement('div'); cell.textContent = cellVal; cell.setAttribute('role', 'gridcell'); cell.setAttribute('tabindex', '0'); cell.dataset.row = rIdx; cell.dataset.col = cIdx; if (rIdx === 0) cell.classList.add('date-component'); const delay = (rIdx * 4 + cIdx) * 0.05; cell.style.animation = `cellEnter var(--cell-anim-duration) cubic-bezier(0.25, 0.46, 0.45, 0.94) ${delay}s forwards`; AppState.elements.magicBox.appendChild(cell); }); }); console.log("Grid displayed."); }
+        function calculateAndDisplaySums() { /* same */ console.log("Calculating sums..."); if (!AppState.currentMagicSquare || !AppState.elements.resultsDiv) return; try { const s = AppState.currentMagicSquare, ms = AppState.magicSum; const rs = s.map(r => r.reduce((a, b) => a + b, 0)), cs = s[0].map((_, c) => s.reduce((a, r) => a + r[c], 0)), d1 = s[0][0]+s[1][1]+s[2][2]+s[3][3], d2 = s[0][3]+s[1][2]+s[2][1]+s[3][0], cn = s[0][0]+s[0][3]+s[3][0]+s[3][3], ct = s[1][1]+s[1][2]+s[2][1]+s[2][2], sTL = s[0][0]+s[0][1]+s[1][0]+s[1][1], sTR = s[0][2]+s[0][3]+s[1][2]+s[1][3], sBL = s[2][0]+s[2][1]+s[3][0]+s[3][1], sBR = s[2][2]+s[2][3]+s[3][2]+s[3][3], sS = [sTL,sTR,sBL,sBR], rM = s[0][1]+s[0][2]+s[3][1]+s[3][2], cM = s[1][0]+s[2][0]+s[1][3]+s[2][3]; AppState.elements.magicSumValueSpan.textContent = ms; AppState.elements.rowSumsSpan.textContent = rs.join(', '); AppState.elements.colSumsSpan.textContent = cs.join(', '); AppState.elements.diagSumsSpan.textContent = `${d1}, ${d2}`; AppState.elements.cornerSumSpan.textContent = cn; AppState.elements.centerSumSpan.textContent = ct; AppState.elements.subSquareSumsSpan.textContent = sS.every(sum => sum === ms) ? ms : sS.join(', '); AppState.elements.midRowSumsSpan.textContent = rM; AppState.elements.midColSumsSpan.textContent = cM; console.log("Sums displayed."); } catch (e) { console.error("Sum calc error:", e); displayError(getText('errorCalculate')); } }
+        function handleArrowNavigation(e, r, c) { /* Same as before */ let tr=r,tc=c,m=false; switch(e.key){case 'ArrowUp':if(r>0){tr--;m=true;}break;case 'ArrowDown':if(r<3){tr++;m=true;}break;case 'ArrowLeft':if(c>0){tc--;m=true;}break;case 'ArrowRight':if(c<3){tc++;m=true;}break; default:return;} if(m){e.preventDefault(); const t=AppState.elements.magicBox?.querySelector(`div[data-row="${tr}"][data-col="${tc}"]`); if(t)t.focus();} }
+
+
+        // --- === Highlighting Logic === ---
+        function clearAllHighlights() { stopAutoHighlight(); clearPersistentHighlight(); }
+        function handleCellClick(event) { /* Starts auto sequence */ const cell = event.target.closest('.magic-box div[data-row]'); if (!cell) return; console.log("Cell clicked - starting auto highlight sequence."); clearAllHighlights(); startAutoHighlightSequence(); }
+        function startAutoHighlightSequence() { /* Same logic, uses refined getAllHighlightSteps */
+            if (AppState.isAutoHighlighting || !AppState.currentMagicSquare.length) return; AppState.isAutoHighlighting = true; AppState.autoHighlightStep = 0; AppState.elements.magicBoxContainer?.classList.add('glowing'); // Add container glow
+            const highlightOrder = getAllHighlightSteps(); function nextStep() { if (!AppState.isAutoHighlighting || AppState.autoHighlightStep >= highlightOrder.length) { stopAutoHighlight(); return; } const { type, indices, descBn, descEn } = highlightOrder[AppState.autoHighlightStep]; const highlightClass = `highlight-${type.toLowerCase().split('_')[0]}`; applyHighlight(indices, highlightClass, false); updateHighlightInfo(descBn, descEn, indices); AppState.autoHighlightStep++; AppState.autoHighlightIntervalId = setTimeout(nextStep, Config.autoHighlightDelay); } nextStep();
+        }
+        function stopAutoHighlight() { /* Same + removes container glow */
+            if (AppState.autoHighlightIntervalId) { clearTimeout(AppState.autoHighlightIntervalId); AppState.autoHighlightIntervalId = null; } AppState.isAutoHighlighting = false; AppState.elements.magicBoxContainer?.classList.remove('glowing'); // Remove container glow
+            if (AppState.elements.magicBox) $$('.magic-box div.highlight').forEach(c => c.className = c.className.replace(/highlight(-\w+)?/g, '').trim()); if (AppState.elements.highlightInfoDiv && !AppState.persistentHighlightType) AppState.elements.highlightInfoDiv.innerHTML = getDefaultHighlightInfo(); console.log("Auto highlight stopped.");
+        }
+
+        function getAllHighlightSteps() { /* Includes MIDROWS and MIDCOLS */
+             const steps = []; const txt = getText; // Alias for shorter lines
+             for (let r = 0; r < 4; r++) steps.push({ type: `ROW_${r}`, indices: Array(4).fill(0).map((_, i) => [r, i]), descBn: `${txt('highlightRow')} ${r + 1}`, descEn: `Row ${r + 1}` });
+             for (let c = 0; c < 4; c++) steps.push({ type: `COL_${c}`, indices: Array(4).fill(0).map((_, i) => [i, c]), descBn: `${txt('highlightCol')} ${c + 1}`, descEn: `Column ${c + 1}` });
+             steps.push({ type: 'DIAG_1', indices: Array(4).fill(0).map((_, i) => [i, i]), descBn: txt('highlightDiag1'), descEn: 'Main Diagonal (TL-BR)' });
+             steps.push({ type: 'DIAG_2', indices: Array(4).fill(0).map((_, i) => [i, 3 - i]), descBn: txt('highlightDiag2'), descEn: 'Main Diagonal (TR-BL)' });
+             steps.push({ type: 'CORNERS', indices: [[0,0], [0,3], [3,0], [3,3]], descBn: txt('highlightCorners'), descEn: 'Four Corners' });
+             steps.push({ type: 'CENTER', indices: [[1,1], [1,2], [2,1], [2,2]], descBn: txt('highlightCenter'), descEn: 'Central 2x2' });
+             steps.push({ type: 'SUBSQUARE_TL', indices: [[0,0],[0,1],[1,0],[1,1]], descBn: txt('highlightSubTL'), descEn: 'Top-Left 2x2' });
+             steps.push({ type: 'SUBSQUARE_TR', indices: [[0,2],[0,3],[1,2],[1,3]], descBn: txt('highlightSubTR'), descEn: 'Top-Right 2x2' });
+             steps.push({ type: 'SUBSQUARE_BL', indices: [[2,0],[2,1],[3,0],[3,1]], descBn: txt('highlightSubBL'), descEn: 'Bottom-Left 2x2' });
+             steps.push({ type: 'SUBSQUARE_BR', indices: [[2,2],[2,3],[3,2],[3,3]], descBn: txt('highlightSubBR'), descEn: 'Bottom-Right 2x2' });
+             steps.push({ type: 'MIDROWS', indices: [[0,1], [0,2], [3,1], [3,2]], descBn: txt('highlightMidRows'), descEn: '1st/Last Row Mid' });
+             steps.push({ type: 'MIDCOLS', indices: [[1,0], [2,0], [1,3], [2,3]], descBn: txt('highlightMidCols'), descEn: '1st/Last Col Mid' });
+             return steps;
+        }
+
+        function handleResultLabelClick(event) { /* Same logic */ const target = event.currentTarget; const highlightType = target.dataset.highlightType; if (!highlightType || !AppState.currentMagicSquare.length) return; console.log(`Result label clicked: ${highlightType}`); clearAllHighlights(); showPersistentHighlight(highlightType); }
+
+        function showPersistentHighlight(type) { /* Uses refined getAllHighlightSteps to find data */
+             if (!AppState.currentMagicSquare.length) return; AppState.persistentHighlightType = type; AppState.elements.magicBoxContainer?.classList.add('glowing'); // Add container glow
+             const allSteps = getAllHighlightSteps(); // Get all definitions
+             let stepData = null;
+             // Need special handling for ROW/COL as type might be ROW_0, ROW_1 etc.
+             if (type === 'ROW') stepData = allSteps.find(s => s.type === 'ROW_0'); // Use first row as example for label click
+             else if (type === 'COL') stepData = allSteps.find(s => s.type === 'COL_0'); // Use first col
+             else if (type === 'DIAG') stepData = allSteps.find(s => s.type === 'DIAG_1'); // Use first diag
+             else if (type === 'SUBSQUARE') stepData = allSteps.find(s => s.type === 'SUBSQUARE_TL'); // Use TL
+             else stepData = allSteps.find(s => s.type === type); // Find exact match for others
+
+             if (!stepData && type === 'SUM') { // Handle SUM case separately
+                 updateHighlightInfo(getText('magicSumLabel'), 'Magic Sum', []); return;
+             } else if (!stepData) { console.warn("No step data found for persistent highlight:", type); return; }
+
+             const { indices, descBn, descEn } = stepData;
+             const highlightClassBase = type.toLowerCase().split('_')[0]; // e.g., "row" from "ROW_0"
+             applyHighlight(indices, `highlight-${highlightClassBase}`, true); // Apply visual
+             $$('.magic-box div.highlight').forEach(cell => cell.classList.add('persistent-highlight')); // Add pulse
+             updateHighlightInfo(descBn, descEn, indices); // Update info
+        }
+        function clearPersistentHighlight() { /* Same + removes container glow */
+             AppState.persistentHighlightType = null; AppState.elements.magicBoxContainer?.classList.remove('glowing'); // Remove glow
+             if (AppState.elements.magicBox) $$('.magic-box div.persistent-highlight').forEach(c => c.classList.remove('persistent-highlight')); if (!AppState.isAutoHighlighting) $$('.magic-box div.highlight').forEach(c => c.className = c.className.replace(/highlight(-\w+)?/g, '').trim()); if (!AppState.isAutoHighlighting && AppState.elements.highlightInfoDiv) AppState.elements.highlightInfoDiv.innerHTML = getDefaultHighlightInfo(); console.log("Persistent highlight cleared.");
+        }
+
+        function applyHighlight(indices, highlightClass, clearPreviousVisual = true) { /* Same */ if (!AppState.elements.magicBox) return; if (clearPreviousVisual) $$('.magic-box div.highlight').forEach(c => { c.className = c.className.replace(/highlight(-\w+)?|persistent-highlight/g, '').trim(); }); indices.forEach(([r, c]) => { if (r>=0&&r<4&&c>=0&&c<4) { const cell = AppState.elements.magicBox.querySelector(`div[data-row="${r}"][data-col="${c}"]`); if (cell) cell.classList.add('highlight', highlightClass); } }); }
+        function updateHighlightInfo(descriptionBn, descriptionEn, indices) { /* Same logic, uses AppState.magicSum */ if (!AppState.elements.highlightInfoDiv) return; let sum = 0, terms = [], possible = true; indices.forEach(([r, c]) => { if (AppState.currentMagicSquare?.[r]?.[c] !== undefined && Number.isFinite(AppState.currentMagicSquare[r][c])) { const v = AppState.currentMagicSquare[r][c]; sum += v; terms.push(formatTwoDigits(v)); } else { terms.push("?"); possible = false; } }); let calcStr = indices.length > 0 ? terms.join(' + ') + ' =' : '', sumStr = indices.length > 0 ? (possible ? sum : 'N/A') : '', warn = ''; const baseType = AppState.persistentHighlightType?.split('_')[0] || (AppState.isAutoHighlighting && AppState.autoHighlightStep > 0) ? getAllHighlightSteps()[AppState.autoHighlightStep - 1]?.type.split('_')[0] : null; const typesExpectingMagicSum = ['ROW','COL','DIAG','CORNERS','CENTER','SUBSQUARE','MIDROWS','MIDCOLS']; if (possible && indices.length > 0 && sum !== AppState.magicSum && typesExpectingMagicSum.includes(baseType)) { warn = `<p class="highlight-warning">(Note: Sum (${sum}) != Magic Sum (${AppState.magicSum}))</p>`; } const desc = AppState.currentLanguage === 'bn' ? descriptionBn : descriptionEn; AppState.elements.highlightInfoDiv.innerHTML = `<p class="highlight-description">${desc}</p>${indices.length > 0 ? `<p class="highlight-calculation">${calcStr} <strong class="highlight-sum">${sumStr}</strong></p>` : ''}${warn}`; AppState.elements.highlightInfoDiv.classList.add('visible'); }
+
+        // --- === History Logic === ---
+        function saveToHistory() { /* Same logic */ if (!AppState.currentMagicSquare.length || !AppState.currentDate) return; const name = AppState.elements.userNameInput.value.trim() || (AppState.currentLanguage === 'bn' ? "নামহীন" : "Unnamed"); const newEntry = { id: Date.now(), name: name, date: AppState.currentDate, square: AppState.currentMagicSquare, magicSum: AppState.magicSum }; const exists = AppState.history.some(item => item.name === newEntry.name && item.date === newEntry.date); if (!exists) { AppState.history.unshift(newEntry); try { localStorage.setItem(Config.localStorageKeys.history, JSON.stringify(AppState.history)); console.log("Saved to history:", newEntry); } catch (e) { console.warn("History save error:", e); } } else { console.log("Duplicate history entry skipped."); } }
+        function loadHistory() { /* Same */ try { const saved = localStorage.getItem(Config.localStorageKeys.history); AppState.history = saved ? JSON.parse(saved) : []; console.log("Loaded history"); } catch (e) { console.warn("History load error:", e); AppState.history = []; } }
+        function displayHistory() { /* Same logic, uses getText */ const list = AppState.elements.historyList; if (!list) return; list.innerHTML = ''; if (AppState.history.length === 0) { list.innerHTML = `<li><p>${getText('noHistory')}</p></li>`; AppState.elements.clearHistoryBtn.style.display = 'none'; } else { AppState.elements.clearHistoryBtn.style.display = 'block'; AppState.history.forEach((item) => { const li = document.createElement('li'); li.className = 'history-item'; li.dataset.historyId = item.id; li.tabIndex = 0; li.role = 'button'; const dateObj = new Date(item.date); const fmtDate = dateObj.toLocaleDateString(AppState.currentLanguage === 'bn' ? 'bn-BD' : 'en-CA', { year: 'numeric', month: 'short', day: 'numeric' }); li.innerHTML = `<span class="history-name">${item.name}</span><span class="history-date">${fmtDate} (Sum: ${item.magicSum})</span>`; list.appendChild(li); }); } }
+        function handleHistoryItemClick(event) { /* Same logic */ const li = event.target.closest('.history-item[data-history-id]'); if (!li) return; const id = parseInt(li.dataset.historyId, 10); const entry = AppState.history.find(item => item.id === id); if (entry) { console.log("Loading history:", entry); resetDisplay(); AppState.currentMagicSquare = entry.square; AppState.magicSum = entry.magicSum; AppState.currentDate = entry.date; AppState.currentName = entry.name; AppState.elements.userNameInput.value = entry.name === 'Unnamed' || entry.name === 'নামহীন' ? '' : entry.name; AppState.elements.birthdateInput.value = entry.date; const fmtSq = AppState.currentMagicSquare.map(r => r.map(formatTwoDigits)); displayMagicSquare(fmtSq); calculateAndDisplaySums(); showDynamicSections(); toggleMenu(); AppState.elements.container?.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }
+        function clearHistory() { /* Same, uses getText */ if (confirm(getText('confirmClearHistory'))) { AppState.history = []; try { localStorage.removeItem(Config.localStorageKeys.history); console.log("History cleared"); } catch (e) { console.warn("History clear error:", e); } displayHistory(); } }
+
+        // --- === Share Logic === ---
+        function shareToWhatsApp() { /* Same logic */ if (!AppState.currentDate || !AppState.currentMagicSquare.length) return; const dateObj = new Date(AppState.currentDate); const fmtDate = dateObj.toLocaleDateString(AppState.currentLanguage === 'bn' ? 'bn-BD' : 'en-CA'); const namePart = AppState.currentName && AppState.currentName !== 'Unnamed' && AppState.currentName !== 'নামহীন' ? ` for ${AppState.currentName}` : ''; let sqTxt = "\n"; AppState.currentMagicSquare.forEach(r => { sqTxt += r.map(formatTwoDigits).join(' | ') + "\n"; }); const msg = encodeURIComponent(`Check out this Ramanujan Magic Square${namePart} generated for ${fmtDate}!\nMagic Sum: ${AppState.magicSum}\n${sqTxt}\nGenerated via: ${window.location.href}`); window.open(`https://wa.me/?text=${msg}`, '_blank'); }
+
+        // --- === Event Handling === ---
+        function handleFormSubmit(event) { /* Uses AppState, saveToHistory */ event.preventDefault(); console.log("Form submitted!"); try { const dateStr = AppState.elements.birthdateInput.value; if (!dateStr) { displayError(getText('errorSelectDate')); return; } const bDate = new Date(dateStr); if (isNaN(bDate.getTime())) { displayError(getText('errorInvalidDate')); return; } resetDisplay(); AppState.currentDate = dateStr; AppState.currentName = AppState.elements.userNameInput.value.trim(); const fmtSq = generateMagicSquare(bDate); if (fmtSq) { displayMagicSquare(fmtSq); calculateAndDisplaySums(); showDynamicSections(); triggerConfetti(); saveToHistory(); AppState.elements.magicBoxContainer?.scrollIntoView({ behavior: 'smooth', block: 'center' }); } else { resetDisplay(); } } catch (e) { console.error("Submit error:", e); displayError(getText('errorUnexpected')); resetDisplay(); } }
+
+        // --- === Extras === ---
+        function triggerConfetti() { /* Same */ if (typeof confetti === 'function') { console.log("Confetti!"); const count = 200; const defaults = { origin: { y: 0.6 }, zIndex: 1050 }; function fire(p, o) { confetti({ ...defaults, ...o, particleCount: Math.floor(count * p) }); } fire(0.25, { spread: 26, startVelocity: 55 }); fire(0.2, { spread: 60 }); fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 }); fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 }); fire(0.1, { spread: 120, startVelocity: 45 }); } else { console.warn("Confetti library not loaded."); } }
+        function displayError(message) { /* Same */ console.error("User Error:", message); alert(message); }
+
+        // --- === Run Initialization === ---
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+    </script>
+</body>
+</html>
